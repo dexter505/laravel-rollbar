@@ -89,23 +89,23 @@ class RollbarLogHandler extends AbstractLogger
      */
     protected function addContext(array $context = [])
     {
+        // Merge person context.
+        if (isset($context['person']) and is_array($context['person'])) {
+            $this->rollbar->person = $context['person'];
+            unset($context['person']);
+        } else {
+            if ($this->rollbar->person_fn && is_callable($this->rollbar->person_fn)) {
+                $data = @call_user_func($this->rollbar->person_fn);
+                if (isset($data['id'])) {
+                    $this->rollbar->person = call_user_func($this->rollbar->person_fn);
+                }
+            }
+        }
+            
         // Add session data.
         if ($session = $this->app->session->all()) {
             if (empty($this->rollbar->person) or ! is_array($this->rollbar->person)) {
                 $this->rollbar->person = [];
-            }
-
-            // Merge person context.
-            if (isset($context['person']) and is_array($context['person'])) {
-                $this->rollbar->person = $context['person'];
-                unset($context['person']);
-            } else {
-                if ($this->rollbar->person_fn && is_callable($this->rollbar->person_fn)) {
-                    $data = @call_user_func($this->rollbar->person_fn);
-                    if (isset($data['id'])) {
-                        $this->rollbar->person = call_user_func($this->rollbar->person_fn);
-                    }
-                }
             }
 
             // Add user session information.
